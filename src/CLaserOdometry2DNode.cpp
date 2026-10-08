@@ -98,7 +98,12 @@ void CLaserOdometry2DNode::LaserCallBack(const sensor_msgs::msg::LaserScan::Shar
     else
     {
       // Initialize module on first scan (from laser params)
-      setLaserPoseFromTf();
+      if (!setLaserPoseFromTf())
+      {
+        // base_link -> laser transform not received yet: do not initialize with an identity
+        // transform (wrong for a rotated LIDAR), retry on the next scan.
+        return;
+      }
       rf2o_ref.init(last_scan, initial_robot_pose.pose.pose);
       rf2o_ref.first_laser_scan = false;
     }
